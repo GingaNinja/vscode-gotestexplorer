@@ -58,7 +58,7 @@ export class ExampleAdapter implements TestAdapter {
 		for (const suiteOrTestId of tests) {
 			const node = this.nodesById.get(suiteOrTestId);
 			if (node) {
-				
+				this.testStatesEmitter.fire(<TestEvent>{ type: 'test', test: suiteOrTestId, state: 'passed' });
 			}
 		}
 		// in a "real" TestAdapter this would start a test run in a child process
