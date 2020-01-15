@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { TestAdapter, TestLoadStartedEvent, TestLoadFinishedEvent, TestRunStartedEvent, TestRunFinishedEvent, TestSuiteEvent, TestEvent } from 'vscode-test-adapter-api';
 import { Log } from 'vscode-test-adapter-util';
 import { loadFakeTests, runFakeTests } from './fakeTests';
+import { TestInfo, TestSuiteInfo } from 'vscode-test-adapter-api';
 
 /**
  * This class is intended as a starting point for implementing a "real" TestAdapter.
@@ -14,6 +15,8 @@ export class ExampleAdapter implements TestAdapter {
 	private readonly testsEmitter = new vscode.EventEmitter<TestLoadStartedEvent | TestLoadFinishedEvent>();
 	private readonly testStatesEmitter = new vscode.EventEmitter<TestRunStartedEvent | TestRunFinishedEvent | TestSuiteEvent | TestEvent>();
 	private readonly autorunEmitter = new vscode.EventEmitter<void>();
+
+	private nodesById = new Map<string, TestSuiteInfo | TestInfo>();
 
 	get tests(): vscode.Event<TestLoadStartedEvent | TestLoadFinishedEvent> { return this.testsEmitter.event; }
 	get testStates(): vscode.Event<TestRunStartedEvent | TestRunFinishedEvent | TestSuiteEvent | TestEvent> { return this.testStatesEmitter.event; }
@@ -39,6 +42,8 @@ export class ExampleAdapter implements TestAdapter {
 		this.testsEmitter.fire(<TestLoadStartedEvent>{ type: 'started' });
 
 		const loadedTests = await loadFakeTests();
+		this.nodesById.clear();
+		this.collectNodesById(loadedTests)
 
 		this.testsEmitter.fire(<TestLoadFinishedEvent>{ type: 'finished', suite: loadedTests });
 
@@ -50,6 +55,12 @@ export class ExampleAdapter implements TestAdapter {
 
 		this.testStatesEmitter.fire(<TestRunStartedEvent>{ type: 'started', tests });
 
+		for (const suiteOrTestId of tests) {
+			const node = this.nodesById.get(suiteOrTestId);
+			if (node) {
+				
+			}
+		}
 		// in a "real" TestAdapter this would start a test run in a child process
 		await runFakeTests(tests, this.testStatesEmitter);
 
@@ -62,6 +73,15 @@ export class ExampleAdapter implements TestAdapter {
 		// start a test run in a child process and attach the debugger to it...
 	}
 */
+
+	private collectNodesById(info: TestSuiteInfo | TestInfo): void {
+		this.nodesById.set(info.id, info);
+		if (info.type === 'suite') {
+			for (const child of info.children) {
+				this.collectNodesById(child);
+			}
+		}
+	}
 
 	cancel(): void {
 		// in a "real" TestAdapter this would kill the child process for the current test run (if there is any)
