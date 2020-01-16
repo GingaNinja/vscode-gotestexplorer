@@ -118,9 +118,9 @@ export class GoDocumentSymbolProvider  {
 
 			if (label === '_' && decl.type === 'variable') return;
 
-			if (decl.receiverType) {
-				label = '(' + decl.receiverType + ').' + label;
-			}
+			// if (decl.receiverType) {
+			// 	label = '(' + decl.receiverType + ').' + label;
+			// }
 
 			let start = byteOffsetToDocumentOffset(decl.start - 1);
 			let end = byteOffsetToDocumentOffset(decl.end - 1);

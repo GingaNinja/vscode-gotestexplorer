@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { TestAdapter, TestLoadStartedEvent, TestLoadFinishedEvent, TestRunStartedEvent, TestRunFinishedEvent, TestSuiteEvent, TestEvent } from 'vscode-test-adapter-api';
 import { Log } from 'vscode-test-adapter-util';
-import { loadFakeTests, runFakeTests } from './fakeTests';
+import { loadFakeTests, runFakeTests, runNode } from './fakeTests';
 import { TestInfo, TestSuiteInfo } from 'vscode-test-adapter-api';
 
 /**
@@ -58,11 +58,11 @@ export class ExampleAdapter implements TestAdapter {
 		for (const suiteOrTestId of tests) {
 			const node = this.nodesById.get(suiteOrTestId);
 			if (node) {
-				this.testStatesEmitter.fire(<TestEvent>{ type: 'test', test: suiteOrTestId, state: 'passed' });
+				await runNode(node, this.testStatesEmitter)
 			}
 		}
 		// in a "real" TestAdapter this would start a test run in a child process
-		await runFakeTests(tests, this.testStatesEmitter);
+		
 
 		this.testStatesEmitter.fire(<TestRunFinishedEvent>{ type: 'finished' });
 
